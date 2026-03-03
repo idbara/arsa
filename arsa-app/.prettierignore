@@ -1,0 +1,4 @@
+build
+.svelte-kit
+dist
+package-lock.json
