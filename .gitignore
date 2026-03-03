@@ -33,6 +33,8 @@ vite.config.ts.timestamp-*
 # Claude Code
 .agent/
 .agents/
+.claude/
+skills-lock.json
 
 # Rust/Wasm (Phase 5+)
 target/
