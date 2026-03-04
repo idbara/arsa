@@ -57,6 +57,10 @@
 		</div>
 	</div>
 
+	<div class="mb-4 text-right">
+		<a href={resolve('/cashflow')} class="link link-primary text-sm">Lihat Detail Arus Kas →</a>
+	</div>
+
 	{#if data.budgets.length > 0}
 		<h2 class="mb-3 text-lg font-bold">Monthly Budget</h2>
 		<div class="mb-6 flex flex-col gap-3">
