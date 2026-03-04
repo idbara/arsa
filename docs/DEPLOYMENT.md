@@ -24,7 +24,7 @@
               └─────────────────┘    └─────────────┘
 ```
 
-**Current state:** Only Cloudflare Pages + Supabase are active. R2, Workers AI, Rust Worker, and Resend are future phases.
+**Current state:** All services are implemented through Phase 7. Cloudflare Pages (SvelteKit), Supabase (DB + Auth), R2 (receipts), Workers AI (OCR), Rust Worker (market scraper), TypeScript Worker (monthly reports), Resend (email), PWA with offline support, push notifications, and CI/CD via GitHub Actions are all active.
 
 ## Manual Deployment
 
@@ -116,6 +116,7 @@ Set these in your repo → Settings → Secrets and variables → Actions:
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Dashboard → any domain → Overview → right sidebar |
 | `PUBLIC_SUPABASE_URL` | Supabase Dashboard → Settings → API → Project URL |
 | `PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API → Project API Keys → `anon` `public` |
+| `PUBLIC_VAPID_PUBLIC_KEY` | Generated via `npx web-push generate-vapid-keys` (public key) |
 
 ### Preview Deployments
 
@@ -129,7 +130,13 @@ Set in Cloudflare Pages → your project → Settings → Environment Variables:
 |----------|-------|-------------|
 | `PUBLIC_SUPABASE_URL` | Production + Preview | Supabase project URL |
 | `PUBLIC_SUPABASE_ANON_KEY` | Production + Preview | Supabase anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Production only | Server-side only (Phase 5+) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Production only | Server-side only |
+| `R2_ACCOUNT_ID` | Production + Preview | Cloudflare account ID for R2 |
+| `R2_ACCESS_KEY_ID` | Production + Preview | R2 access key |
+| `R2_SECRET_ACCESS_KEY` | Production + Preview | R2 secret key |
+| `R2_BUCKET_NAME` | Production + Preview | R2 bucket name (`arsa-receipts`) |
+| `CLOUDFLARE_AI_TOKEN` | Production + Preview | Workers AI token for OCR |
+| `PUBLIC_VAPID_PUBLIC_KEY` | Production + Preview | VAPID public key for push notifications |
 
 **Important:** Use separate Supabase projects for production and preview if you want data isolation. Otherwise, preview deployments will share the production database.
 
@@ -138,7 +145,7 @@ Set in Cloudflare Pages → your project → Settings → Environment Variables:
 ### New Production Project
 
 1. Create a new Supabase project for production (or reuse your dev project for MVP).
-2. Run all migrations from `supabase/migrations/` in order via SQL Editor.
+2. Run all migrations from `supabase/migrations/` in order (001 → 002 → 003 → 004 → 006 → 007 → 008 → 009) via SQL Editor.
 3. Verify RLS is enabled on all tables: Database → Tables → check "RLS Enabled" column.
 
 ### Auth Configuration
@@ -161,54 +168,51 @@ WHERE schemaname = 'public';
 
 All tables except `market_rates` should show `rowsecurity = true`. (`market_rates` also has RLS but with a public read policy.)
 
-## Cloudflare R2 (Phase 3+)
-
-*Not yet implemented. Setup instructions for when Phase 3 begins.*
+## Cloudflare R2 (Receipts)
 
 ### Bucket Setup
 
 1. R2 → Create Bucket → name: `arsa-receipts`.
-2. Settings → CORS Policy:
+2. Configure CORS by running the setup script locally (requires `.env` with R2 credentials):
+   ```bash
+   node scripts/setup-r2-cors.mjs
+   ```
+   This sets `AllowedOrigins: ['*']`, `AllowedMethods: ['PUT', 'GET']`.
+3. Set R2 env vars (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`) in Cloudflare Pages settings.
 
-```json
-[
-  {
-    "AllowedOrigins": ["https://arsa-app.pages.dev"],
-    "AllowedMethods": ["GET", "PUT"],
-    "AllowedHeaders": ["Content-Type"],
-    "MaxAgeSeconds": 3600
-  }
-]
-```
+### How It Works
 
-3. Bind R2 to your Pages project in `wrangler.jsonc`:
+- Receipt uploads use presigned PUT URLs generated server-side (`/api/receipts/presign`).
+- Images are compressed client-side via Canvas API (~150KB) before upload.
+- R2 client uses `$env/dynamic/private` with lazy initialization (`getR2()`) so builds succeed without R2 credentials.
 
-```jsonc
-"r2_buckets": [
-  { "binding": "RECEIPTS", "bucket_name": "arsa-receipts" }
-]
-```
+## Cloudflare Workers AI — OCR
 
-### Presigned URLs
+### Setup
 
-Receipt uploads use presigned PUT URLs generated server-side. The client never gets direct R2 credentials.
+1. In Cloudflare Dashboard → Workers AI → Models, accept the **Meta Llama 3.2 11B Vision Instruct** model license.
+2. Get your AI API token: Workers AI → Overview → Use REST API → Get API Token.
+3. Set `CLOUDFLARE_AI_TOKEN` in Cloudflare Pages env vars (or `.env` for local dev).
 
-## Cloudflare Workers — Market Scraper (Phase 5+)
+### How It Works
 
-*Not yet implemented. Setup instructions for when Phase 5 begins.*
+- SvelteKit endpoint `/api/ocr` fetches receipt from R2, sends to Workers AI REST API.
+- Model extracts `{ nominal, tanggal, merchant }` as JSON.
+- Results auto-fill the transaction form; user must review before saving (human-in-the-loop).
+
+## Cloudflare Workers — Market Scraper
 
 ### Deployment
 
-The market scraper is a separate Rust/Wasm Cloudflare Worker:
-
 ```bash
 cd workers/market-scraper
+cargo install worker-build   # one-time
 wrangler deploy
 ```
 
 ### Cron Triggers
 
-Configure in the worker's `wrangler.toml`:
+Configured in `wrangler.toml`:
 
 ```toml
 [triggers]
@@ -218,27 +222,109 @@ crons = ["0 2 * * *", "0 6 * * *"]  # 09:00 & 13:00 WIB (UTC+7)
 ### Secrets
 
 ```bash
+cd workers/market-scraper
 wrangler secret put SUPABASE_URL
 wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 ```
 
+### What It Scrapes
+
+- **Gold**: Logam Mulia HTML pages for 1gr buy/sell prices.
+- **Stocks**: IDX JSON API for BBCA, BBRI, TLKM, BMRI close prices.
+- Upserts to Supabase `market_rates` table via PostgREST.
+
 **Critical:** `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. Only use in server-side workers. Never expose to clients.
 
-## Cloudflare Workers AI — OCR (Phase 4+)
+## Cloudflare Workers — Monthly Report & Gamification
 
-*Not yet implemented.* Workers AI is available automatically on the Cloudflare free plan. No additional setup beyond binding in `wrangler.jsonc`:
+### Deployment
 
-```jsonc
-"ai": { "binding": "AI" }
+```bash
+cd workers/arsa-monthly
+npm install
+wrangler deploy
 ```
 
-## Resend Email (Phase 6+)
+### Cron Trigger
 
-*Not yet implemented.* Monthly auto-report emails via Resend API.
+Runs on the 1st of every month at 01:00 UTC (`0 1 1 * *`).
+
+### Secrets
+
+```bash
+cd workers/arsa-monthly
+wrangler secret put SUPABASE_URL
+wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+wrangler secret put RESEND_API_KEY
+wrangler secret put WORKER_SECRET
+```
+
+### Manual Trigger
+
+```bash
+curl -H "X-Worker-Secret: YOUR_SECRET" https://arsa-monthly-worker.<subdomain>.workers.dev
+```
+
+### What It Does
+
+1. **Gamification evaluation**: Evaluates point rules (budget discipline, daily logging, savings milestones, custom challenges) for all families. Awards points, updates streaks.
+2. **Email report**: Builds an HTML report with cashflow summary, category breakdown, investment performance, gamification leaderboard. Sends via Resend API to all family members.
+
+## Resend Email
 
 1. Sign up at [resend.com](https://resend.com/) (free: 3,000 emails/month).
-2. Add and verify your sending domain.
-3. Get API key → set as `RESEND_API_KEY` in Workers secrets.
+2. Add and verify your sending domain (or use `arsa@resend.dev` for testing).
+3. Get API key → set as `RESEND_API_KEY` in the `arsa-monthly` worker secrets.
+
+## Push Notifications
+
+### VAPID Key Generation
+
+Push notifications use the Web Push protocol with VAPID (Voluntary Application Server Identification) keys.
+
+**Generate keys (one-time):**
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+This outputs a public key and a private key. Store them securely.
+
+### Setup
+
+1. Set `PUBLIC_VAPID_PUBLIC_KEY` in Cloudflare Pages environment variables (Production + Preview).
+2. Set `VAPID_PRIVATE_KEY` in Cloudflare Pages environment variables (Production only — server-side secret).
+3. Run migration `009_push_subscriptions.sql` on your Supabase project to create the `push_subscriptions` table.
+4. Users subscribe to push notifications from the app's Settings page. The browser's Push API registers the subscription, which is stored in Supabase.
+
+### Notification Triggers
+
+| Trigger | Condition | Recipients |
+|---------|-----------|------------|
+| Budget alert | Category spending exceeds 80% of `monthly_limit` | Transaction creator |
+| Reward approved | Admin approves a proposed reward | Reward proposer |
+| Monthly report ready | Monthly report email sent | All family members |
+
+## Testing
+
+Run all test commands from `arsa-app/`:
+
+| Command | Description |
+|---------|-------------|
+| `npx vitest run` | Run unit tests (offline queue, worker helpers) |
+| `npx vitest run --config vitest.integration.config.ts` | Run integration tests (gamification) |
+| `cd workers/arsa-monthly && npx vitest run` | Run monthly worker unit tests |
+| `npx playwright test` | Run E2E tests (auth, PWA, responsive) |
+
+### CI/CD Pipeline
+
+The GitHub Actions workflow (`.github/workflows/ci.yml`) runs 5 jobs on every push to `main` and on pull requests:
+
+1. **Lint** — ESLint + Prettier + TypeScript type checking
+2. **Unit tests** — Vitest unit tests
+3. **Integration tests** — Vitest integration tests
+4. **E2E tests** — Playwright tests with Chromium
+5. **Deploy** — Build and deploy to Cloudflare Pages (only on `main` branch)
 
 ## Domain & DNS (Optional)
 

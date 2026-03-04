@@ -59,8 +59,19 @@ Relasi entitas inti dibangun dengan pengamanan *Row Level Security* (RLS) ketat 
 * **investments**  
   * id (UUID, PK) | family\_id (UUID, FK) | asset\_code (String, FK to market\_rates)  
   * qty (Numeric \- Lot/Gram/Unit) | avg\_buy\_price (Numeric)  
-* **gamification**  
-  * family\_id (UUID, PK) | current\_points (Integer) | rewards\_catalog (JSONB)
+* **point\_rules**
+  * id (UUID, PK) | family\_id (UUID, FK) | rule\_type (String: budget\_discipline, daily\_logging, savings\_milestone, custom\_challenge) | name (String) | description (String) | points\_value (Integer) | config (JSONB) | is\_active (Boolean) | created\_by (UUID, FK)
+* **point\_events**
+  * id (UUID, PK) | family\_id (UUID, FK) | user\_id (UUID, FK) | rule\_id (UUID, FK nullable) | points (Integer) | description (String) | month (Date) | created\_at (Timestamp)
+  * Unique index on (rule\_id, user\_id, month) to prevent duplicate awards
+* **rewards**
+  * id (UUID, PK) | family\_id (UUID, FK) | name (String) | description (String) | point\_cost (Integer) | proposed\_by (UUID, FK) | status (String: pending, approved, rejected) | approved\_by (UUID, FK nullable)
+* **reward\_redemptions**
+  * id (UUID, PK) | family\_id (UUID, FK) | reward\_id (UUID, FK) | redeemed\_by (UUID, FK) | points\_spent (Integer) | redeemed\_at (Timestamp) | fulfilled (Boolean)
+* **gamification** (per-user running totals)
+  * family\_id (UUID, PK) | user\_id (UUID, PK) | current\_points (Integer) | streak\_days (Integer) | last\_log\_date (Date)
+* **push\_subscriptions**
+  * id (UUID, PK) | user\_id (UUID, FK to users) | endpoint (Text) | keys (JSONB) | created\_at (Timestamptz)
 
 ## **4\. Strategi Keamanan & Privasi**
 

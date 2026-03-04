@@ -1,0 +1,14 @@
+name = "arsa-market-scraper"
+main = "build/worker/shim.mjs"
+compatibility_date = "2024-01-01"
+
+[build]
+command = "cargo install worker-build && worker-build --release"
+
+[triggers]
+crons = ["0 2,6 * * *"]
+
+[vars]
+# Set via `wrangler secret put`
+# SUPABASE_URL
+# SUPABASE_SERVICE_ROLE_KEY

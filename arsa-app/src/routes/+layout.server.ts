@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/public';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabase }, cookies }) => {
@@ -37,6 +38,7 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
 		user,
 		cookies: cookies.getAll(),
 		accounts,
-		categories
+		categories,
+		vapidPublicKey: env.PUBLIC_VAPID_PUBLIC_KEY ?? ''
 	};
 };

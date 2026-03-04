@@ -10,7 +10,8 @@
 | Supabase CLI | latest | `npm install -g supabase` |
 | Wrangler CLI | latest | `npm install -g wrangler` |
 
-**Future (Phase 5+):** Rust toolchain + `wasm-pack` for the market scraper worker.
+| Rust toolchain | latest | [rustup.rs](https://rustup.rs/) (Phase 5 market scraper) |
+| cargo-install worker-build | latest | `cargo install worker-build` (Phase 5) |
 
 ## Supabase Setup
 
@@ -23,7 +24,11 @@
    - Paste and run `supabase/migrations/002_rls.sql` — enables Row Level Security policies.
    - Paste and run `supabase/migrations/003_fix_rls_recursion.sql` — fixes RLS infinite recursion with `SECURITY DEFINER` helper functions.
    - Paste and run `supabase/migrations/004_add_group_id.sql` — adds `group_id` column to transactions.
-6. Verify: go to Table Editor, confirm 9 tables exist (`families`, `users`, `accounts`, `categories`, `transactions`, `market_rates`, `investments`, `gamification`, `invites`).
+   - Paste and run `supabase/migrations/006_phase6_drop_old_gamification.sql` — drops old gamification table.
+   - Paste and run `supabase/migrations/007_phase6_gamification_tables.sql` — creates 5 gamification tables.
+   - Paste and run `supabase/migrations/008_phase6_rls.sql` — RLS policies for gamification tables.
+   - Paste and run `supabase/migrations/009_push_subscriptions.sql` — creates `push_subscriptions` table for push notifications.
+6. Verify: go to Table Editor, confirm 15 tables exist (`families`, `users`, `accounts`, `categories`, `transactions`, `market_rates`, `investments`, `invites`, `point_rules`, `point_events`, `rewards`, `reward_redemptions`, `gamification`, `push_subscriptions`).
 
 **Alternative (Supabase CLI):**
 
@@ -37,8 +42,9 @@ supabase db push
 
 1. Create a [Cloudflare](https://dash.cloudflare.com/) account (free plan).
 2. **R2 Storage** (Phase 3+): Create a bucket named `arsa-receipts` in R2 → Overview → Create Bucket.
-3. **Workers AI** (Phase 4+): No setup needed — available automatically on free plan.
+3. **Workers AI** (Phase 4+): Available on free plan. You must accept the Meta Llama 3.2 Vision model license in the Cloudflare dashboard (Workers AI → Models → Llama 3.2 Vision → Accept). Get your AI API token from Workers AI → Overview → Use REST API → Get API Token.
 4. **Wrangler auth**: Run `wrangler login` to authenticate your local CLI.
+5. **R2 CORS** (Phase 3+): Run `node scripts/setup-r2-cors.mjs` after configuring R2 env vars in `.env` to enable browser uploads.
 
 ## Local Development
 
@@ -75,35 +81,109 @@ arsa/
 │   └── plans/                   # Phase design & implementation plans
 ├── supabase/
 │   └── migrations/
-│       ├── 001_schema.sql       # Table definitions
-│       ├── 002_rls.sql          # Row Level Security policies
-│       ├── 003_fix_rls_recursion.sql  # RLS helper functions
-│       └── 004_add_group_id.sql      # Transaction group_id column
+│       ├── 001_schema.sql               # Table definitions
+│       ├── 002_rls.sql                  # Row Level Security policies
+│       ├── 003_fix_rls_recursion.sql    # RLS helper functions
+│       ├── 004_add_group_id.sql         # Transaction group_id column
+│       ├── 006_phase6_drop_old_gamification.sql  # Drop old gamification
+│       ├── 007_phase6_gamification_tables.sql    # 5 new gamification tables
+│       ├── 008_phase6_rls.sql           # Gamification RLS policies
+│       └── 009_push_subscriptions.sql  # Push notification subscriptions
+├── workers/
+│   ├── market-scraper/          # Rust/Wasm Cloudflare Worker (Phase 5)
+│   │   ├── Cargo.toml
+│   │   ├── wrangler.toml
+│   │   └── src/lib.rs           # Gold + stock scrapers
+│   └── arsa-monthly/            # TypeScript Cloudflare Worker (Phase 6)
+│       ├── wrangler.jsonc
+│       ├── package.json
+│       └── src/
+│           ├── index.ts         # Entry point + cron handler
+│           ├── evaluate.ts      # Gamification rule evaluation
+│           └── email.ts         # Monthly report builder + Resend
+├── scripts/
+│   └── setup-r2-cors.mjs       # One-time R2 CORS configuration
 └── arsa-app/                    # SvelteKit application
     ├── package.json
     ├── svelte.config.js         # Cloudflare adapter config
     ├── vite.config.ts
-    ├── wrangler.jsonc            # Cloudflare Workers config
+    ├── wrangler.jsonc           # Cloudflare Workers config
     ├── .env.example
     ├── src/
-    │   ├── app.html              # HTML shell
-    │   ├── app.css               # Tailwind + daisyUI setup
-    │   ├── app.d.ts              # TypeScript ambient types
-    │   ├── hooks.server.ts       # Auth middleware & route guards
+    │   ├── app.html             # HTML shell
+    │   ├── app.css              # Tailwind + daisyUI setup
+    │   ├── app.d.ts             # TypeScript ambient types
+    │   ├── hooks.server.ts      # Auth middleware & route guards
     │   ├── lib/
-    │   │   ├── components/       # Shared Svelte components
-    │   │   ├── theme.svelte.ts   # Theme state (dim/cupcake)
-    │   │   └── index.ts          # Lib barrel export
+    │   │   ├── components/      # Shared Svelte components
+    │   │   │   ├── AddTransaction.svelte   # Transaction entry modal
+    │   │   │   ├── BottomNav.svelte        # Bottom navigation dock
+    │   │   │   ├── Reconcile.svelte        # Bank reconciliation UI
+    │   │   │   ├── ReceiptUpload.svelte    # Camera/gallery receipt upload
+    │   │   │   ├── ReceiptViewer.svelte    # Receipt image viewer
+    │   │   │   ├── WealthTab.svelte        # Portfolio holdings view
+    │   │   │   ├── InvestmentModal.svelte  # Buy/sell asset modal
+    │   │   │   ├── LeaderboardTable.svelte # Gamification leaderboard
+    │   │   │   ├── PointsBadge.svelte      # Points display badge
+    │   │   │   ├── PointEventItem.svelte   # Point event row
+    │   │   │   ├── StreakIndicator.svelte   # Streak display
+    │   │   │   ├── RewardCard.svelte       # Reward with redeem button
+    │   │   │   └── RewardProposalModal.svelte  # Propose reward form
+    │   │   ├── offline.ts       # IndexedDB offline queue (idb)
+    │   │   ├── sync.ts          # Sync engine with retry logic
+    │   │   ├── online-status.svelte.ts  # Online/offline reactive state
+    │   │   ├── push.ts          # VAPID push subscription client
+    │   │   ├── server/
+    │   │   │   ├── r2.ts        # Lazy-initialized R2 S3 client
+    │   │   │   └── push.ts      # Server-side push notification sending
+    │   │   ├── types/
+    │   │   │   └── gamification.ts  # Gamification TypeScript types
+    │   │   ├── bank-parsers.ts  # BCA + Mandiri CSV parsers
+    │   │   ├── reconcile.ts     # Reconciliation matching logic
+    │   │   ├── compress-image.ts # Client-side image compression
+    │   │   ├── theme.svelte.ts  # Theme state (dim/cupcake)
+    │   │   └── index.ts         # Lib barrel export
     │   └── routes/
     │       ├── +layout.svelte    # App shell (nav, header)
-    │       ├── +layout.server.ts # Session loading
-    │       ├── +page.svelte      # Home page
+    │       ├── +layout.server.ts # Session + accounts + categories
+    │       ├── +layout.ts        # Browser/server Supabase client
+    │       ├── +page.svelte      # Home (Cash Flow / Wealth tabs)
+    │       ├── +page.server.ts   # Dashboard data loader
     │       ├── login/            # Email/password login
     │       ├── register/         # Registration + profile creation
     │       ├── logout/           # Session clear
-    │       ├── onboarding/       # Family creation & invite join
-    │       └── invite/[token]/   # Join family via invite link
-    └── static/                   # Static assets
+    │       ├── onboarding/       # Family creation & invite
+    │       ├── invite/[token]/   # Join family via invite link
+    │       ├── history/          # Transaction history + reconciliation
+    │       ├── plan/             # Child expenses + education calculator
+    │       ├── settings/         # Accounts, categories, sign out
+    │       ├── gamification/     # Gamification dashboard
+    │       │   ├── rewards/      # Rewards catalog + propose/redeem
+    │       │   └── history/      # Point event history with filters
+    │       └── api/
+    │           ├── transactions/ # Transaction CRUD
+    │           ├── investments/  # Buy/sell investments
+    │           ├── ocr/          # Receipt OCR via Workers AI
+    │           ├── receipts/     # R2 presigned URLs
+    │           └── reconcile/    # Mark transactions reconciled
+    ├── static/                   # Static assets
+    │   ├── manifest.json         # PWA manifest
+    │   ├── service-worker.js     # Service worker (Workbox caching)
+    │   └── icons/                # PWA icons (192x192, 512x512)
+    └── tests/                    # Test suites
+        ├── setup.ts              # Test setup & global mocks
+        ├── unit/                 # Vitest unit tests
+        ├── integration/          # Vitest integration tests
+        ├── mocks/                # Shared test mocks
+        └── e2e/                  # Playwright E2E tests
+```
+
+**CI/CD:**
+
+```
+.github/
+└── workflows/
+    └── ci.yml                    # GitHub Actions (lint, test, deploy)
 ```
 
 ## Available Scripts
@@ -119,6 +199,9 @@ Run from `arsa-app/`:
 | `npm run check:watch` | Type checking in watch mode |
 | `npm run lint` | ESLint + Prettier check |
 | `npm run format` | Auto-format with Prettier |
+| `npx vitest run` | Run unit tests |
+| `npx vitest run --config vitest.integration.config.ts` | Run integration tests |
+| `npx playwright test` | Run E2E tests |
 
 ## Code Conventions
 
@@ -135,7 +218,7 @@ Migrations live in `supabase/migrations/` with sequential numbering.
 
 **Adding a new migration:**
 
-1. Create `supabase/migrations/005_<description>.sql` (use the next sequential number).
+1. Create `supabase/migrations/010_<description>.sql` (use the next sequential number).
 2. Write idempotent SQL (use `IF NOT EXISTS`, `OR REPLACE` where possible).
 3. Apply via Supabase SQL Editor or `supabase db push`.
 4. Commit the migration file.
@@ -154,12 +237,15 @@ Migrations live in `supabase/migrations/` with sequential numbering.
 |----------|----------|-------------|
 | `PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Phase 5+ | Server-only key for market scraper worker |
-| `R2_ACCOUNT_ID` | Phase 3+ | Cloudflare account ID for R2 |
-| `R2_ACCESS_KEY_ID` | Phase 3+ | R2 access key |
-| `R2_SECRET_ACCESS_KEY` | Phase 3+ | R2 secret key |
-| `R2_BUCKET_NAME` | Phase 3+ | R2 bucket name (`arsa-receipts`) |
-| `RESEND_API_KEY` | Phase 6+ | Resend API key for email reports |
+| `SUPABASE_SERVICE_ROLE_KEY` | Workers | Server-only key for market scraper & monthly worker |
+| `R2_ACCOUNT_ID` | Yes (Phase 3+) | Cloudflare account ID for R2 |
+| `R2_ACCESS_KEY_ID` | Yes (Phase 3+) | R2 access key |
+| `R2_SECRET_ACCESS_KEY` | Yes (Phase 3+) | R2 secret key |
+| `R2_BUCKET_NAME` | Yes (Phase 3+) | R2 bucket name (`arsa-receipts`) |
+| `CLOUDFLARE_AI_TOKEN` | Yes (Phase 4+) | Cloudflare Workers AI API token for OCR |
+| `PUBLIC_VAPID_PUBLIC_KEY` | Yes (Phase 7+) | VAPID public key for push notification subscriptions |
+| `VAPID_PRIVATE_KEY` | Yes (Phase 7+) | VAPID private key for server-side push sending |
+| `RESEND_API_KEY` | Workers (Phase 6+) | Resend API key for monthly email reports |
 
 Variables prefixed with `PUBLIC_` are exposed to the client. All others must only be used server-side.
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { invalidateAll } from '$app/navigation';
+	import { SvelteSet } from 'svelte/reactivity';
 	import ReceiptViewer from '$lib/components/ReceiptViewer.svelte';
 	import Reconcile from '$lib/components/Reconcile.svelte';
 
@@ -9,7 +10,7 @@
 	let viewingReceipt = $state<string | null>(null);
 	let showReconcile = $state(false);
 	let manualMode = $state(false);
-	let manualSelected = $state<Set<string>>(new Set());
+	let manualSelected = new SvelteSet<string>();
 	let applyingManual = $state(false);
 
 	function formatAmount(amount: number, type: string): string {
@@ -26,10 +27,8 @@
 	}
 
 	function toggleManualSelect(id: string) {
-		const next = new Set(manualSelected);
-		if (next.has(id)) next.delete(id);
-		else next.add(id);
-		manualSelected = next;
+		if (manualSelected.has(id)) manualSelected.delete(id);
+		else manualSelected.add(id);
 	}
 
 	async function applyManualReconcile() {
@@ -39,7 +38,7 @@
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ transactionIds: [...manualSelected] })
 		});
-		manualSelected = new Set();
+		manualSelected.clear();
 		manualMode = false;
 		applyingManual = false;
 		await invalidateAll();
@@ -54,7 +53,7 @@
 			class:btn-active={manualMode}
 			onclick={() => {
 				manualMode = !manualMode;
-				manualSelected = new Set();
+				manualSelected.clear();
 			}}
 		>
 			Manual

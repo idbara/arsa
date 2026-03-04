@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { sendPushToFamilyAdmins } from '$lib/server/push';
 
 export const POST: RequestHandler = async ({ request, locals: { supabase, safeGetSession } }) => {
 	const { user } = await safeGetSession();
@@ -75,6 +76,50 @@ export const POST: RequestHandler = async ({ request, locals: { supabase, safeGe
 				.from('accounts')
 				.update({ balance: Number(destAccount.balance) + totalAmount })
 				.eq('id', body.transfer_to);
+		}
+	}
+
+	// Budget alert: check if any category exceeded its monthly limit
+	if (type === 'out') {
+		const txDate = date || new Date().toISOString().split('T')[0];
+		const monthStart = txDate.substring(0, 7) + '-01';
+		const nextMonth = new Date(monthStart);
+		nextMonth.setMonth(nextMonth.getMonth() + 1);
+		const monthEnd = nextMonth.toISOString().split('T')[0];
+
+		for (const item of items as { amount: number; category_id: string | null }[]) {
+			if (!item.category_id) continue;
+
+			const { data: category } = await supabase
+				.from('categories')
+				.select('name, monthly_limit')
+				.eq('id', item.category_id)
+				.single();
+
+			if (category?.monthly_limit) {
+				const { data: monthTxns } = await supabase
+					.from('transactions')
+					.select('amount')
+					.eq('family_id', profile.family_id)
+					.eq('category_id', item.category_id)
+					.eq('type', 'out')
+					.gte('date', monthStart)
+					.lt('date', monthEnd);
+
+				const totalSpend = (monthTxns ?? []).reduce(
+					(s: number, t: { amount: number }) => s + Number(t.amount),
+					0
+				);
+
+				if (totalSpend > Number(category.monthly_limit)) {
+					await sendPushToFamilyAdmins(supabase, profile.family_id, {
+						title: 'Budget Alert',
+						body: `${category.name} exceeded Rp${Number(category.monthly_limit).toLocaleString('id-ID')} this month`,
+						icon: '/icons/icon-192.png',
+						url: '/history'
+					});
+				}
+			}
 		}
 	}
 

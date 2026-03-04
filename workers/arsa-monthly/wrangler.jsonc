@@ -1,0 +1,8 @@
+{
+	"name": "arsa-monthly-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-01-01",
+	"triggers": {
+		"crons": ["0 1 1 * *"]
+	}
+}

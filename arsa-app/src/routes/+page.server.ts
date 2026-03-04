@@ -2,7 +2,15 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession } }) => {
 	const { user } = await safeGetSession();
-	if (!user) return { totalBalance: 0, budgets: [], recentTransactions: [] };
+	if (!user)
+		return {
+			totalBalance: 0,
+			budgets: [],
+			recentTransactions: [],
+			investments: [],
+			marketRates: [],
+			gamification: null
+		};
 
 	const { data: profile } = await supabase
 		.from('users')
@@ -10,7 +18,15 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 		.eq('id', user.id)
 		.single();
 
-	if (!profile?.family_id) return { totalBalance: 0, budgets: [], recentTransactions: [] };
+	if (!profile?.family_id)
+		return {
+			totalBalance: 0,
+			budgets: [],
+			recentTransactions: [],
+			investments: [],
+			marketRates: [],
+			gamification: null
+		};
 
 	const familyId = profile.family_id;
 
@@ -70,5 +86,30 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 		merchant: tx.is_private && tx.user_id !== user.id ? null : tx.merchant
 	}));
 
-	return { totalBalance, budgets, recentTransactions: sanitized };
+	const { data: investments } = await supabase
+		.from('investments')
+		.select(
+			'id, asset_code, qty, avg_buy_price, market_rates(asset_code, asset_type, buy_price, sell_price, updated_at)'
+		)
+		.eq('family_id', familyId);
+
+	const { data: marketRates } = await supabase
+		.from('market_rates')
+		.select('asset_code, asset_type, buy_price, sell_price, updated_at');
+
+	const { data: gamification } = await supabase
+		.from('gamification')
+		.select('current_points, streak_days')
+		.eq('family_id', familyId)
+		.eq('user_id', user.id)
+		.single();
+
+	return {
+		totalBalance,
+		budgets,
+		recentTransactions: sanitized,
+		investments: investments ?? [],
+		marketRates: marketRates ?? [],
+		gamification: gamification ?? null
+	};
 };

@@ -22,6 +22,8 @@
 	let isSplit = $state(false);
 	let receiptKey = $state('');
 	let submitting = $state(false);
+	let scanning = $state(false);
+	let scanError = $state('');
 	let error = $state('');
 
 	let amount = $state('');
@@ -40,6 +42,41 @@
 	let splitTotal = $derived(
 		splitItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0)
 	);
+
+	async function scanReceipt() {
+		if (!receiptKey) return;
+		scanning = true;
+		scanError = '';
+
+		try {
+			const res = await fetch('/api/ocr', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ key: receiptKey })
+			});
+
+			const data = await res.json();
+
+			if (!data.success) {
+				scanError = data.error || 'Could not read receipt.';
+				return;
+			}
+
+			if (data.data.nominal != null) {
+				amount = String(data.data.nominal);
+			}
+			if (data.data.tanggal) {
+				date = data.data.tanggal;
+			}
+			if (data.data.merchant) {
+				merchant = data.data.merchant;
+			}
+		} catch {
+			scanError = 'Failed to scan receipt.';
+		} finally {
+			scanning = false;
+		}
+	}
 
 	async function handleSubmit() {
 		error = '';
@@ -217,6 +254,25 @@
 			/>
 
 			<ReceiptUpload bind:receiptKey />
+
+			{#if receiptKey && !isSplit}
+				<button
+					type="button"
+					class="btn btn-secondary btn-sm w-full"
+					onclick={scanReceipt}
+					disabled={scanning}
+				>
+					{#if scanning}
+						<span class="loading loading-spinner loading-sm"></span>
+						Scanning...
+					{:else}
+						Scan Receipt
+					{/if}
+				</button>
+				{#if scanError}
+					<p class="text-xs text-warning">{scanError}</p>
+				{/if}
+			{/if}
 
 			<label class="label cursor-pointer justify-start gap-3">
 				<input type="checkbox" class="checkbox checkbox-sm" bind:checked={isPrivate} />

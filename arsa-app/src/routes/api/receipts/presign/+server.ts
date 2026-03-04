@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
-import { r2 } from '$lib/server/r2';
-import { R2_BUCKET_NAME } from '$env/static/private';
+import { getR2 } from '$lib/server/r2';
+import { env } from '$env/dynamic/private';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { RequestHandler } from './$types';
@@ -30,9 +30,9 @@ export const POST: RequestHandler = async ({ request, locals: { safeGetSession, 
 	const key = `receipts/${profile.family_id}/${crypto.randomUUID()}.jpg`;
 
 	const putUrl = await getSignedUrl(
-		r2,
+		getR2(),
 		new PutObjectCommand({
-			Bucket: R2_BUCKET_NAME,
+			Bucket: env.R2_BUCKET_NAME!,
 			Key: key,
 			ContentType: contentType
 		}),

@@ -10,7 +10,7 @@
 
 Dokumen ini membagi proses pengembangan ke dalam beberapa sprint/fase yang berurutan, memastikan fondasi aplikasi kuat sebelum menambahkan fitur-fitur kompleks (*AI*, *Scraper*, dll).
 
-## **🚩 FASE 0: Persiapan Infrastruktur & Environment (Minggu 1\)**
+## **✅ FASE 0: Persiapan Infrastruktur & Environment (Minggu 1\)** — SELESAI
 
 *Fokus: Mengamankan semua akun layanan gratis (Rp0), inisialisasi repositori, dan setup Design System.*
 
@@ -32,7 +32,7 @@ Dokumen ini membagi proses pengembangan ke dalam beberapa sprint/fase yang berur
    * Daftarkan daisyUI di dalam tailwind.config.js.  
    * Pilih dan tentukan tema estetik bawaan daisyUI (misal: cupcake, pastel, nord, atau dim untuk dark mode) agar UI konsisten dan indah tanpa perlu *styling* CSS dari nol.
 
-## **🚩 FASE 1: Skema Database & Autentikasi (Minggu 1-2)**
+## **✅ FASE 1: Skema Database & Autentikasi (Minggu 1-2)** — SELESAI
 
 *Fokus: Membangun fondasi data dan sistem ruang kerja keluarga (Workspace).*
 
@@ -45,7 +45,7 @@ Dokumen ini membagi proses pengembangan ke dalam beberapa sprint/fase yang berur
    * Buat alur "Buat Keluarga Baru" (Insert ke tabel families lalu update users).  
    * Buat fitur *Generate Invite Link* untuk mengundang pasangan ke dalam *workspace* keluarga.
 
-## **🚩 FASE 2: Core UI & Pencatatan Transaksi (Minggu 3\)**
+## **✅ FASE 2: Core UI & Pencatatan Transaksi (Minggu 3\)** — SELESAI
 
 *Fokus: Membangun fungsi paling sering dipakai dengan pendekatan Mobile-First menggunakan komponen daisyUI.*
 
@@ -64,7 +64,7 @@ Dokumen ini membagi proses pengembangan ke dalam beberapa sprint/fase yang berur
    * Tampilkan Sisa Saldo Total menggunakan komponen stat.  
    * Tampilkan *Progress Bar* Budget Bulanan menggunakan komponen progress.
 
-## **🚩 FASE 3: Rekonsiliasi Bank & R2 Storage (Minggu 4\)**
+## **✅ FASE 3: Rekonsiliasi Bank & R2 Storage (Minggu 4\)** — SELESAI
 
 *Fokus: Akurasi data dan penyimpanan bukti transaksi.*
 
@@ -78,7 +78,7 @@ Dokumen ini membagi proses pengembangan ke dalam beberapa sprint/fase yang berur
    * Buat komponen Kamera/Upload Foto di form transaksi SvelteKit.  
    * Implementasi kompresi gambar (*client-side* menggunakan Canvas API).
 
-## **🚩 FASE 4: OCR Struk & Modul Anak (Minggu 5\)**
+## **✅ FASE 4: OCR Struk & Modul Anak (Minggu 5\)** — SELESAI
 
 *Fokus: Menambahkan "Magic Moment" dan spesialisasi fitur keluarga.*
 
@@ -89,7 +89,7 @@ Dokumen ini membagi proses pengembangan ke dalam beberapa sprint/fase yang berur
    * Buat *Dashboard* khusus dengan filter kategori is\_child\_related.  
    * Bangun UI Kalkulator Proyeksi Biaya Pendidikan (input inflasi dan durasi tahun).
 
-## **🚩 FASE 5: Wealth Tracker & Market Scraper (Minggu 6\)**
+## **✅ FASE 5: Wealth Tracker & Market Scraper (Minggu 6\)** — SELESAI
 
 *Fokus: Integrasi aset Emas, Saham, Reksadana.*
 
@@ -103,31 +103,46 @@ Dokumen ini membagi proses pengembangan ke dalam beberapa sprint/fase yang berur
    * Buat form pencatatan beli/jual emas dan saham.  
    * Tampilkan valuasi aset *real-time* dan *Floating Profit/Loss* di SvelteKit (gunakan warna teks hijau/merah otomatis).
 
-## **🚩 FASE 6: Gamifikasi & Otomatisasi Laporan (Minggu 7\)**
+## **✅ FASE 6: Gamifikasi & Otomatisasi Laporan (Minggu 7\)** — SELESAI
 
 *Fokus: Retensi pengguna (suami-istri) dan pelaporan rutin.*
 
-1. **Sistem Gamifikasi:**  
-   * Buat *job* atau fungsi evaluasi di akhir bulan: Jika *expense* \< *budget*, tambahkan poin ke tabel gamification.  
-   * Buat UI "Katalog Reward Keluarga".  
-2. **Auto-Reporting (Resend API):**  
-   * Desain *template* email HTML elegan menggunakan Svelte.  
-   * Buat Cloudflare Worker terpisah (atau satukan dengan *scraper*) yang berjalan setiap tanggal 1\.  
-   * Tarik rekapitulasi data dari Supabase, lalu *trigger* pengiriman email via Resend API ke alamat email suami & istri.
+1. **Sistem Gamifikasi:** ✅
+   * 5 tabel baru: `point_rules`, `point_events`, `rewards`, `reward_redemptions`, `gamification` (per-user).
+   * 4 tipe aturan poin: budget\_discipline, daily\_logging, savings\_milestone, custom\_challenge.
+   * UI Dashboard gamifikasi (`/gamification`): poin, streak, leaderboard, aktivitas terbaru.
+   * Katalog Reward (`/gamification/rewards`): proposal, approve/reject (admin), redeem.
+   * Riwayat poin (`/gamification/history`): filter per member dan bulan.
+   * Widget gamifikasi di halaman utama (poin + streak).
+2. **Auto-Reporting (Resend API):** ✅
+   * Cloudflare Worker terpisah (`arsa-monthly-worker`) berjalan setiap tanggal 1 pukul 01:00 UTC.
+   * Evaluasi aturan gamifikasi untuk semua keluarga, hitung poin dan streak.
+   * Template email HTML: ringkasan cashflow, kategori, investasi, leaderboard, highlights.
+   * Pengiriman via Resend API ke semua anggota keluarga.
 
-## **🚩 FASE 7: PWA, Testing & Deployment (Minggu 8\)**
+## **✅ FASE 7: PWA, Testing & Deployment (Minggu 8\)** — SELESAI
 
 *Fokus: Rilis dan menjadikan aplikasi terasa seperti aplikasi Native.*
 
-1. **Progressive Web App (PWA):**  
-   * Tambahkan manifest.json (Ikon aplikasi, nama, warna tema).  
-   * Daftarkan *Service Worker* untuk *caching* aset statis agar aplikasi cepat dibuka.  
-2. **Quality Assurance (QA):**  
-   * Uji coba aplikasi penuh (*End-to-End*) menggunakan HP Android dan iOS (Safari/Chrome).  
-   * Pastikan *numpad* muncul saat mengisi nominal, kamera terbuka dengan benar, dan UI tidak pecah di layar kecil.  
-3. **Production Deployment:**  
-   * Konfigurasi *Environment Variables* (Supabase URL, R2 Keys, AI Keys) di *dashboard* Cloudflare Pages.  
-   * *Push* kode ke *branch* utama (main/master) untuk memicu *build* otomatis di Cloudflare Pages.  
-   * Akses aplikasi melalui URL produksi dan tambahkan ke *Home Screen* (Add to Home Screen).
+1. **Progressive Web App (PWA):** ✅
+   * `manifest.json` dengan ikon aplikasi, nama, warna tema, dan `display: standalone`.
+   * Service Worker menggunakan Workbox CDN caching: fonts, images, API responses, dan pages.
+   * Push notification handling di Service Worker (event `push` dan `notificationclick`).
+2. **Offline Support:** ✅
+   * IndexedDB queue menggunakan library `idb` untuk menyimpan transaksi saat offline.
+   * Sync engine dengan retry otomatis saat koneksi kembali online.
+   * Online status banner yang menampilkan indikator offline/online kepada pengguna.
+3. **Push Notifications:** ✅
+   * Tabel `push_subscriptions` di Supabase (migrasi `009_push_subscriptions.sql`).
+   * VAPID client subscription: pengguna subscribe via browser Push API.
+   * Server-side sending menggunakan `web-push` library.
+   * Trigger notifikasi: budget alert (pengeluaran > 80% limit), reward approved, monthly report ready.
+4. **Testing:** ✅
+   * Vitest unit tests: offline queue logic, worker helper functions.
+   * Vitest integration tests: gamification scoring dan rule evaluation.
+   * Playwright E2E tests: auth flow, PWA install prompt, responsive layout.
+5. **CI/CD:** ✅
+   * GitHub Actions workflow (`.github/workflows/ci.yml`) dengan 5 jobs: lint, unit test, integration test, E2E test, dan Cloudflare Pages deployment.
+   * Deployment otomatis ke Cloudflare Pages saat push ke branch `main`.
 
 [image1]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAXCAYAAADpwXTaAAAAt0lEQVR4XmNgGAWjgDpAQUGBQ05OLk1UVJQHXY4cwCgvL98KNNAYXYIsADIIaGAvkMmCLkcOYAR6twBoaByIjSIDlBAA2iRJClZSUgKaJTcfyJ6soqLCBzZIXFycGyhQDcSzSMVAw3YA6a9A3Aw0kB3FhaQAWVlZE6Ahq6WlpWXQ5UgCQAOEgQYtVlRUlEeXIxkADcoChnMEujjJAJRogYZNlZGRkUaXIwcwqqur84JodIlRMMAAAJV7J+RoCL8jAAAAAElFTkSuQmCC>
