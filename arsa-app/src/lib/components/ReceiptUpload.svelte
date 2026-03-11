@@ -65,19 +65,19 @@
 <div class="flex flex-col gap-2">
 	{#if previewUrl}
 		<div class="relative">
-			<img src={previewUrl} alt="Receipt preview" class="h-32 w-auto rounded-lg object-cover" />
+			<img src={previewUrl} alt="Receipt preview" class="h-32 w-auto rounded-xl object-cover" />
 			<button
 				class="btn btn-circle btn-error btn-xs absolute -right-2 -top-2"
 				onclick={removeReceipt}>x</button
 			>
 			{#if uploading}
-				<div class="absolute inset-0 flex items-center justify-center rounded-lg bg-base-300/70">
+				<div class="absolute inset-0 flex items-center justify-center rounded-xl bg-base-300/70">
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
 			{/if}
 		</div>
 	{:else}
-		<label class="btn btn-ghost btn-sm gap-2">
+		<label class="btn btn-ghost btn-sm gap-2 rounded-lg">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="size-4"

@@ -63,7 +63,7 @@
 	let totalProjected = $derived(activeProjections.reduce((sum, p) => sum + p.projectedCost, 0));
 </script>
 
-<h1 class="mb-6 text-2xl font-bold">Education Cost Projection</h1>
+<h1 class="heading-xl mb-6">Education Cost Projection</h1>
 
 <div class="mb-6 flex flex-col gap-4">
 	<label class="floating-label">
@@ -72,7 +72,7 @@
 			type="number"
 			inputmode="numeric"
 			placeholder="Child's Current Age"
-			class="input input-bordered w-full"
+			class="input input-bordered w-full rounded-xl"
 			bind:value={childAge}
 			min="0"
 			max="25"
@@ -85,7 +85,7 @@
 			type="number"
 			inputmode="decimal"
 			placeholder="Inflation Rate (%)"
-			class="input input-bordered w-full"
+			class="input input-bordered w-full rounded-xl"
 			bind:value={inflationRate}
 			step="0.1"
 			min="0"
@@ -94,7 +94,7 @@
 	</label>
 </div>
 
-<h2 class="mb-3 text-lg font-bold">Current Annual Costs</h2>
+<h2 class="heading-md mb-3">Current Annual Costs</h2>
 <div class="mb-6 flex flex-col gap-3">
 	{#each levels as level, i (level.label)}
 		<label class="floating-label">
@@ -103,7 +103,7 @@
 				type="number"
 				inputmode="decimal"
 				placeholder={level.label}
-				class="input input-bordered w-full"
+				class="input input-bordered w-full rounded-xl"
 				bind:value={costs[costKeys[i]]}
 				step="any"
 			/>
@@ -111,15 +111,15 @@
 	{/each}
 </div>
 
-<h2 class="mb-3 text-lg font-bold">Projected Costs</h2>
+<h2 class="heading-md mb-3">Projected Costs</h2>
 
 {#if activeProjections.length === 0}
-	<p class="py-4 text-center text-base-content/60">Child has passed all education levels.</p>
+	<p class="text-subtle py-4 text-center">Child has passed all education levels.</p>
 {:else}
-	<div class="mb-4 overflow-x-auto">
-		<table class="table table-sm">
+	<div class="mb-4 overflow-hidden rounded-xl">
+		<table class="table table-sm text-sm">
 			<thead>
-				<tr>
+				<tr class="bg-base-200/50">
 					<th>Level</th>
 					<th class="text-right">Entry Age</th>
 					<th class="text-right">In Years</th>
@@ -141,17 +141,15 @@
 		</table>
 	</div>
 
-	<div class="stats w-full shadow">
-		<div class="stat">
-			<div class="stat-title">Total Projected Cost</div>
-			<div class="stat-value text-2xl text-primary">
-				Rp {totalProjected.toLocaleString('id-ID')}
-			</div>
-			<div class="stat-desc">At {inflationRate}% annual inflation</div>
-		</div>
+	<div class="rounded-2xl border border-primary/10 bg-primary/5 p-4">
+		<p class="text-subtle text-xs font-medium uppercase tracking-wider">Total Projected Cost</p>
+		<p class="mt-1 font-mono text-2xl font-bold text-primary">
+			Rp {totalProjected.toLocaleString('id-ID')}
+		</p>
+		<p class="text-subtle mt-1 text-xs">At {inflationRate}% annual inflation</p>
 	</div>
 {/if}
 
 <div class="mt-6">
-	<a href={resolve('/plan')} class="btn btn-ghost w-full">Back to Plan</a>
+	<a href={resolve('/plan')} class="btn btn-ghost w-full rounded-xl">Back to Plan</a>
 </div>

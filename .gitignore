@@ -34,7 +34,11 @@ vite.config.ts.timestamp-*
 .agent/
 .agents/
 .claude/
+.superpowers/
 skills-lock.json
+
+# Supabase temp
+supabase/.temp/
 
 # Rust/Wasm (Phase 5+)
 target/

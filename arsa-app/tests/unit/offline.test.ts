@@ -8,7 +8,7 @@ import {
 	deletePendingAction,
 	getPendingCount,
 	setCachedData,
-	getCachedData,
+	getCachedData
 } from '$lib/offline';
 
 describe('offline queue', () => {

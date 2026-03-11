@@ -15,15 +15,15 @@
 	}
 </script>
 
-<div class="card w-full max-w-sm bg-base-100 shadow-xl">
+<div class="card shadow-card w-full max-w-sm rounded-2xl bg-base-100">
 	<div class="card-body">
-		<h2 class="card-title justify-center text-2xl">Invite Your Partner</h2>
-		<p class="text-center text-base-content/60">
+		<h2 class="text-center text-2xl font-bold text-primary">Invite Your Partner</h2>
+		<p class="text-subtle text-center text-sm">
 			Share this link so they can join your family workspace
 		</p>
 
 		{#if form?.error}
-			<div class="alert alert-error text-sm">
+			<div class="animate-fade-in rounded-xl bg-error/10 px-4 py-2.5 text-sm text-error">
 				{form.error}
 			</div>
 		{/if}
@@ -32,22 +32,22 @@
 			<div class="flex flex-col gap-2">
 				<input
 					type="text"
-					class="input input-bordered w-full text-sm"
+					class="input input-bordered w-full rounded-xl text-sm"
 					value={inviteLink}
 					readonly
 				/>
-				<button class="btn btn-secondary w-full" onclick={copyLink}>
+				<button class="btn btn-secondary w-full rounded-xl" onclick={copyLink}>
 					{copied ? 'Copied!' : 'Copy Link'}
 				</button>
 			</div>
 		{:else}
 			<form method="POST" action="?/generate" use:enhance>
-				<button type="submit" class="btn btn-primary w-full">Generate Invite Link</button>
+				<button type="submit" class="btn btn-primary w-full rounded-xl">Generate Invite Link</button>
 			</form>
 		{/if}
 
 		<div class="divider"></div>
 
-		<a href={resolve('/')} class="btn btn-ghost w-full">Skip for now</a>
+		<a href={resolve('/')} class="btn btn-ghost w-full rounded-xl">Skip for now</a>
 	</div>
 </div>

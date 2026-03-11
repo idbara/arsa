@@ -8,21 +8,21 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 export const TEST_USER = {
 	email: 'e2e-test@arsa.local',
 	password: 'TestPassword123!',
-	displayName: 'E2E Tester',
+	displayName: 'E2E Tester'
 };
 
 export async function seedTestUser() {
 	const { data: authUser } = await supabase.auth.admin.createUser({
 		email: TEST_USER.email,
 		password: TEST_USER.password,
-		email_confirm: true,
+		email_confirm: true
 	});
 
 	if (authUser?.user) {
 		await supabase.from('users').insert({
 			id: authUser.user.id,
 			display_name: TEST_USER.displayName,
-			role: 'admin',
+			role: 'admin'
 		});
 	}
 

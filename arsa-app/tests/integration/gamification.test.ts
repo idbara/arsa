@@ -10,11 +10,11 @@ describe('gamification page load', () => {
 
 	it('redirects to onboarding when no family', async () => {
 		const supabase = createMockSupabase({
-			users: { data: { family_id: null, display_name: 'Test' }, error: null },
+			users: { data: { family_id: null, display_name: 'Test' }, error: null }
 		});
 		const locals = createMockLocals({
 			session: { user: { id: 'user-1', email: 'test@test.com' } },
-			supabase,
+			supabase
 		});
 
 		const session = await locals.safeGetSession();
@@ -32,25 +32,25 @@ describe('gamification page load', () => {
 		const supabase = createMockSupabase({
 			users: {
 				data: { family_id: 'fam-1', display_name: 'Test', role: 'admin' },
-				error: null,
+				error: null
 			},
 			gamification: {
 				data: { current_points: 100, streak_days: 7 },
-				error: null,
+				error: null
 			},
 			point_events: {
 				data: {
 					id: '1',
 					points: 50,
 					description: 'Test',
-					created_at: '2026-03-01',
+					created_at: '2026-03-01'
 				} as unknown as Record<string, unknown>,
-				error: null,
-			},
+				error: null
+			}
 		});
 		const locals = createMockLocals({
 			session: { user: { id: 'user-1', email: 'test@test.com' } },
-			supabase,
+			supabase
 		});
 
 		const session = await locals.safeGetSession();

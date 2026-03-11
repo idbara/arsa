@@ -26,7 +26,7 @@ export function createMockSupabase(responses: Record<string, MockResponse> = {})
 				lt: vi.fn(),
 				order: vi.fn(),
 				limit: vi.fn(),
-				single: vi.fn().mockResolvedValue(response),
+				single: vi.fn().mockResolvedValue(response)
 			},
 			{
 				get(target, prop) {
@@ -41,7 +41,7 @@ export function createMockSupabase(responses: Record<string, MockResponse> = {})
 						return (..._args: unknown[]) => chain;
 					}
 					return fn;
-				},
+				}
 			}
 		);
 
@@ -53,15 +53,15 @@ export function createMockSupabase(responses: Record<string, MockResponse> = {})
 		auth: {
 			getSession: vi.fn().mockResolvedValue({
 				data: { session: null },
-				error: null,
+				error: null
 			}),
 			admin: {
 				getUserById: vi.fn().mockResolvedValue({
 					data: { user: null },
-					error: null,
-				}),
-			},
-		},
+					error: null
+				})
+			}
+		}
 	};
 }
 
@@ -75,7 +75,7 @@ export function createMockLocals(
 	return {
 		supabase,
 		safeGetSession: vi.fn().mockResolvedValue({
-			session: options.session ? { user: options.session.user } : null,
-		}),
+			session: options.session ? { user: options.session.user } : null
+		})
 	};
 }

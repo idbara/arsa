@@ -142,23 +142,29 @@
 </script>
 
 <div class="modal modal-open modal-bottom">
-	<div class="modal-box max-h-[85vh]">
-		<h3 class="mb-4 text-lg font-bold">Add Transaction</h3>
+	<div class="shadow-elevated animate-slide-up modal-box max-h-[85vh] rounded-t-3xl">
+		<h3 class="heading-lg mb-4">Add Transaction</h3>
 
 		{#if error}
-			<div class="alert alert-error mb-4 text-sm">{error}</div>
+			<div class="animate-fade-in mb-4 rounded-xl bg-error/10 px-4 py-2.5 text-sm text-error">{error}</div>
 		{/if}
 
-		<div class="tabs tabs-boxed mb-4">
-			<button class="tab" class:tab-active={type === 'out'} onclick={() => (type = 'out')}
-				>Expense</button
-			>
-			<button class="tab" class:tab-active={type === 'in'} onclick={() => (type = 'in')}
-				>Income</button
-			>
-			<button class="tab" class:tab-active={type === 'transfer'} onclick={() => (type = 'transfer')}
-				>Transfer</button
-			>
+		<!-- Type tabs — pill switcher -->
+		<div class="mb-4 rounded-xl bg-base-200/50 p-1">
+			<div class="flex">
+				<button
+					class="flex-1 rounded-lg py-2 text-sm transition-all {type === 'out' ? 'shadow-soft bg-base-100 font-medium' : 'text-base-content/50'}"
+					onclick={() => (type = 'out')}
+				>Expense</button>
+				<button
+					class="flex-1 rounded-lg py-2 text-sm transition-all {type === 'in' ? 'shadow-soft bg-base-100 font-medium' : 'text-base-content/50'}"
+					onclick={() => (type = 'in')}
+				>Income</button>
+				<button
+					class="flex-1 rounded-lg py-2 text-sm transition-all {type === 'transfer' ? 'shadow-soft bg-base-100 font-medium' : 'text-base-content/50'}"
+					onclick={() => (type = 'transfer')}
+				>Transfer</button>
+			</div>
 		</div>
 
 		<div class="flex flex-col gap-3">
@@ -166,14 +172,14 @@
 				<input
 					type="number"
 					inputmode="decimal"
-					placeholder="Amount"
-					class="input input-bordered input-lg w-full text-center text-2xl"
+					placeholder="0"
+					class="w-full rounded-2xl bg-base-200/30 py-4 text-center font-mono text-3xl font-bold focus:outline-none focus:ring-2 focus:ring-primary/30"
 					bind:value={amount}
 					step="any"
 				/>
 			{/if}
 
-			<select class="select select-bordered w-full" bind:value={accountId}>
+			<select class="select select-bordered w-full rounded-xl" bind:value={accountId}>
 				<option value="" disabled>Select account</option>
 				{#each accounts as account (account.id)}
 					<option value={account.id}>{account.name}</option>
@@ -181,7 +187,7 @@
 			</select>
 
 			{#if type === 'transfer'}
-				<select class="select select-bordered w-full" bind:value={transferTo}>
+				<select class="select select-bordered w-full rounded-xl" bind:value={transferTo}>
 					<option value="" disabled>Transfer to...</option>
 					{#each accounts.filter((a) => a.id !== accountId) as account (account.id)}
 						<option value={account.id}>{account.name}</option>
@@ -190,7 +196,7 @@
 			{/if}
 
 			{#if type !== 'transfer' && !isSplit}
-				<select class="select select-bordered w-full" bind:value={categoryId}>
+				<select class="select select-bordered w-full rounded-xl" bind:value={categoryId}>
 					<option value="" disabled>Select category</option>
 					{#each categories as category (category.id)}
 						<option value={category.id}>{category.name}</option>
@@ -201,55 +207,53 @@
 			{#if type !== 'transfer'}
 				<label class="label cursor-pointer justify-start gap-3">
 					<input type="checkbox" class="toggle toggle-sm" bind:checked={isSplit} />
-					<span class="label-text">Split across categories</span>
+					<span class="text-sm">Split across categories</span>
 				</label>
 			{/if}
 
 			{#if isSplit && type !== 'transfer'}
-				<div class="rounded-box flex flex-col gap-2 border border-base-300 p-3">
+				<div class="flex flex-col gap-2 rounded-xl border border-base-200 p-3">
 					{#each splitItems as item, i (i)}
 						<div class="flex items-center gap-2">
 							<input
 								type="number"
 								inputmode="decimal"
 								placeholder="Amount"
-								class="input input-bordered input-sm flex-1"
+								class="input input-bordered input-sm flex-1 rounded-lg"
 								bind:value={item.amount}
 								step="any"
 							/>
-							<select class="select select-bordered select-sm flex-1" bind:value={item.categoryId}>
+							<select class="select select-bordered select-sm flex-1 rounded-lg" bind:value={item.categoryId}>
 								<option value="" disabled>Category</option>
 								{#each categories as category (category.id)}
 									<option value={category.id}>{category.name}</option>
 								{/each}
 							</select>
 							{#if splitItems.length > 1}
-								<button class="btn btn-ghost btn-sm btn-square" onclick={() => removeSplitItem(i)}
-									>x</button
-								>
+								<button class="btn btn-ghost btn-sm btn-square rounded-lg" onclick={() => removeSplitItem(i)}>x</button>
 							{/if}
 						</div>
 					{/each}
-					<button class="btn btn-ghost btn-sm" onclick={addSplitItem}>+ Add item</button>
+					<button class="btn btn-ghost btn-sm rounded-lg" onclick={addSplitItem}>+ Add item</button>
 					<p class="text-right font-mono text-sm">
 						Total: Rp {splitTotal.toLocaleString('id-ID')}
 					</p>
 				</div>
 			{/if}
 
-			<input type="date" class="input input-bordered w-full" bind:value={date} />
+			<input type="date" class="input input-bordered w-full rounded-xl" bind:value={date} />
 
 			<input
 				type="text"
 				placeholder="Merchant (optional)"
-				class="input input-bordered w-full"
+				class="input input-bordered w-full rounded-xl"
 				bind:value={merchant}
 			/>
 
 			<input
 				type="text"
 				placeholder="Notes (optional)"
-				class="input input-bordered w-full"
+				class="input input-bordered w-full rounded-xl"
 				bind:value={notes}
 			/>
 
@@ -258,7 +262,7 @@
 			{#if receiptKey && !isSplit}
 				<button
 					type="button"
-					class="btn btn-secondary btn-sm w-full"
+					class="btn btn-secondary btn-sm w-full rounded-xl"
 					onclick={scanReceipt}
 					disabled={scanning}
 				>
@@ -276,13 +280,13 @@
 
 			<label class="label cursor-pointer justify-start gap-3">
 				<input type="checkbox" class="checkbox checkbox-sm" bind:checked={isPrivate} />
-				<span class="label-text">Hide details from partner</span>
+				<span class="text-sm">Hide details from partner</span>
 			</label>
 		</div>
 
 		<div class="modal-action">
-			<button class="btn btn-ghost" onclick={onClose}>Cancel</button>
-			<button class="btn btn-primary" onclick={handleSubmit} disabled={submitting}>
+			<button class="btn btn-ghost rounded-xl" onclick={onClose}>Cancel</button>
+			<button class="btn btn-primary rounded-xl" onclick={handleSubmit} disabled={submitting}>
 				{#if submitting}
 					<span class="loading loading-spinner loading-sm"></span>
 				{:else}
@@ -291,5 +295,5 @@
 			</button>
 		</div>
 	</div>
-	<button class="modal-backdrop" aria-label="Close" onclick={onClose}></button>
+	<button class="modal-backdrop bg-black/30" aria-label="Close" onclick={onClose}></button>
 </div>

@@ -5,13 +5,13 @@
 	let { form } = $props();
 </script>
 
-<div class="card w-full max-w-sm bg-base-100 shadow-xl">
+<div class="card shadow-card w-full max-w-sm rounded-2xl bg-base-100">
 	<div class="card-body">
-		<h2 class="card-title justify-center text-2xl">Create Account</h2>
-		<p class="text-center text-base-content/60">Join Arsa to manage your family finances</p>
+		<h2 class="text-center text-2xl font-bold text-primary">Create Account</h2>
+		<p class="text-subtle text-center text-sm">Join Arsa to manage your family finances</p>
 
 		{#if form?.error}
-			<div class="alert alert-error text-sm">
+			<div class="animate-fade-in rounded-xl bg-error/10 px-4 py-2.5 text-sm text-error">
 				{form.error}
 			</div>
 		{/if}
@@ -23,7 +23,7 @@
 					name="display_name"
 					type="text"
 					placeholder="Display Name"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					value={form?.displayName ?? ''}
 					required
 				/>
@@ -35,7 +35,7 @@
 					name="email"
 					type="email"
 					placeholder="Email"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					value={form?.email ?? ''}
 					required
 				/>
@@ -47,18 +47,18 @@
 					name="password"
 					type="password"
 					placeholder="Password"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					minlength="6"
 					required
 				/>
 			</label>
 
-			<button type="submit" class="btn btn-primary w-full">Register</button>
+			<button type="submit" class="btn btn-primary w-full rounded-xl">Register</button>
 		</form>
 
 		<p class="text-center text-sm">
 			Already have an account?
-			<a href={resolve('/login')} class="link link-primary">Sign in</a>
+			<a href={resolve('/login')} class="font-medium text-primary">Sign in</a>
 		</p>
 	</div>
 </div>

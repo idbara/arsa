@@ -3,8 +3,8 @@
 </script>
 
 <dialog class="modal" class:modal-open={open}>
-	<div class="modal-box">
-		<h3 class="text-lg font-bold">Propose a Reward</h3>
+	<div class="shadow-elevated animate-slide-up modal-box rounded-t-3xl">
+		<h3 class="heading-lg">Propose a Reward</h3>
 		<form method="POST" action="?/propose" class="flex flex-col gap-3 pt-4">
 			<label class="floating-label">
 				<span>Reward Name</span>
@@ -12,7 +12,7 @@
 					name="name"
 					type="text"
 					placeholder="Reward Name"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					required
 				/>
 			</label>
@@ -21,7 +21,7 @@
 				<textarea
 					name="description"
 					placeholder="Description"
-					class="textarea textarea-bordered w-full"
+					class="textarea textarea-bordered w-full rounded-xl"
 				></textarea>
 			</label>
 			<label class="floating-label">
@@ -31,15 +31,15 @@
 					type="number"
 					min="1"
 					placeholder="Point Cost"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					required
 				/>
 			</label>
 			<div class="modal-action">
-				<button type="button" class="btn btn-ghost" onclick={() => (open = false)}>Cancel</button>
-				<button type="submit" class="btn btn-primary">Propose</button>
+				<button type="button" class="btn btn-ghost rounded-xl" onclick={() => (open = false)}>Cancel</button>
+				<button type="submit" class="btn btn-primary rounded-xl">Propose</button>
 			</div>
 		</form>
 	</div>
-	<button class="modal-backdrop" aria-label="Close" onclick={() => (open = false)}></button>
+	<button class="modal-backdrop bg-black/30" aria-label="Close" onclick={() => (open = false)}></button>
 </dialog>

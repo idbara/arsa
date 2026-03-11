@@ -5,13 +5,13 @@
 	let { form } = $props();
 </script>
 
-<div class="card w-full max-w-sm bg-base-100 shadow-xl">
+<div class="card shadow-card w-full max-w-sm rounded-2xl bg-base-100">
 	<div class="card-body">
-		<h2 class="card-title justify-center text-2xl">Arsa</h2>
-		<p class="text-center text-base-content/60">Sign in to your account</p>
+		<h2 class="text-center text-2xl font-bold text-primary">Arsa</h2>
+		<p class="text-subtle text-center text-sm">Sign in to your account</p>
 
 		{#if form?.error}
-			<div class="alert alert-error text-sm">
+			<div class="animate-fade-in rounded-xl bg-error/10 px-4 py-2.5 text-sm text-error">
 				{form.error}
 			</div>
 		{/if}
@@ -23,7 +23,7 @@
 					name="email"
 					type="email"
 					placeholder="Email"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					value={form?.email ?? ''}
 					required
 				/>
@@ -35,17 +35,17 @@
 					name="password"
 					type="password"
 					placeholder="Password"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					required
 				/>
 			</label>
 
-			<button type="submit" class="btn btn-primary w-full">Sign In</button>
+			<button type="submit" class="btn btn-primary w-full rounded-xl">Sign In</button>
 		</form>
 
 		<p class="text-center text-sm">
 			Don't have an account?
-			<a href={resolve('/register')} class="link link-primary">Register</a>
+			<a href={resolve('/register')} class="font-medium text-primary">Register</a>
 		</p>
 	</div>
 </div>

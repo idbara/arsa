@@ -4,15 +4,15 @@
 	let { form } = $props();
 </script>
 
-<div class="card w-full max-w-sm bg-base-100 shadow-xl">
+<div class="card shadow-card w-full max-w-sm rounded-2xl bg-base-100">
 	<div class="card-body">
-		<h2 class="card-title justify-center text-2xl">Welcome to Arsa</h2>
-		<p class="text-center text-base-content/60">
+		<h2 class="text-center text-2xl font-bold text-primary">Welcome to Arsa</h2>
+		<p class="text-subtle text-center text-sm">
 			Create your family workspace or join an existing one
 		</p>
 
 		{#if form?.error}
-			<div class="alert alert-error text-sm">
+			<div class="animate-fade-in rounded-xl bg-error/10 px-4 py-2.5 text-sm text-error">
 				{form.error}
 			</div>
 		{/if}
@@ -24,17 +24,17 @@
 					name="family_name"
 					type="text"
 					placeholder="Family Name"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					required
 				/>
 			</label>
 
-			<button type="submit" class="btn btn-primary w-full">Create Family</button>
+			<button type="submit" class="btn btn-primary w-full rounded-xl">Create Family</button>
 		</form>
 
 		<div class="divider">OR</div>
 
-		<p class="text-center text-sm text-base-content/60">
+		<p class="text-subtle text-center text-sm">
 			Have an invite link from your partner? Open the link directly to join their family.
 		</p>
 	</div>

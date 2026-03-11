@@ -76,77 +76,77 @@
 </script>
 
 <div class="modal modal-open modal-bottom">
-	<div class="modal-box max-h-[90vh]">
-		<h3 class="mb-4 text-lg font-bold">Reconcile Transactions</h3>
+	<div class="shadow-elevated animate-slide-up modal-box max-h-[90vh] rounded-t-3xl">
+		<h3 class="heading-lg mb-4">Reconcile Transactions</h3>
 
 		{#if parseError}
-			<div class="alert alert-error mb-4 text-sm">{parseError}</div>
+			<div class="animate-fade-in mb-4 rounded-xl bg-error/10 px-4 py-2.5 text-sm text-error">{parseError}</div>
 		{/if}
 
 		{#if step === 'upload'}
 			<div class="flex flex-col gap-4">
 				<label class="form-control w-full">
-					<div class="label"><span class="label-text">Bank</span></div>
-					<select class="select select-bordered w-full" bind:value={bank}>
+					<div class="label"><span class="text-sm font-medium">Bank</span></div>
+					<select class="select select-bordered w-full rounded-xl" bind:value={bank}>
 						<option value="bca">BCA</option>
 						<option value="mandiri">Mandiri</option>
 					</select>
 				</label>
 
 				<label class="form-control w-full">
-					<div class="label"><span class="label-text">CSV File</span></div>
+					<div class="label"><span class="text-sm font-medium">CSV File</span></div>
 					<input
 						type="file"
 						accept=".csv"
-						class="file-input file-input-bordered w-full"
+						class="file-input file-input-bordered w-full rounded-xl"
 						onchange={handleFile}
 					/>
 				</label>
 
-				<p class="text-xs text-base-content/60">
+				<p class="text-subtle text-xs">
 					Your CSV file is processed entirely on this device and never uploaded to any server.
 				</p>
 			</div>
 
 			<div class="modal-action">
-				<button class="btn btn-ghost" onclick={onClose}>Cancel</button>
+				<button class="btn btn-ghost rounded-xl" onclick={onClose}>Cancel</button>
 			</div>
 		{:else}
 			<div class="mb-4 flex gap-3 text-sm">
-				<span class="badge badge-success">{matchedCount} matched</span>
-				<span class="badge badge-warning">{unmatchedCount} unmatched</span>
+				<span class="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">{matchedCount} matched</span>
+				<span class="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">{unmatchedCount} unmatched</span>
 			</div>
 
 			<div class="flex max-h-[55vh] flex-col gap-3 overflow-y-auto">
 				{#each matches as match, i (i)}
-					<div class="card bg-base-200 p-3">
+					<div class="rounded-xl bg-base-200/50 p-3">
 						<div class="flex justify-between text-sm">
 							<div>
 								<p class="font-mono font-bold">
 									Rp {Math.abs(match.bankTx.amount).toLocaleString('id-ID')}
 								</p>
-								<p class="text-xs text-base-content/60">{match.bankTx.date}</p>
-								<p class="max-w-48 truncate text-xs text-base-content/60">
+								<p class="text-subtle text-xs">{match.bankTx.date}</p>
+								<p class="text-subtle max-w-48 truncate text-xs">
 									{match.bankTx.description}
 								</p>
 							</div>
 							<div class="text-right">
 								{#if match.status === 'matched'}
-									<span class="badge badge-success badge-sm">Matched</span>
+									<span class="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Matched</span>
 								{:else if match.status === 'skipped'}
-									<span class="badge badge-ghost badge-sm">Skipped</span>
+									<span class="text-subtle rounded-full bg-base-200 px-2 py-0.5 text-xs font-medium">Skipped</span>
 								{:else}
-									<span class="badge badge-warning badge-sm">No match</span>
+									<span class="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">No match</span>
 								{/if}
 							</div>
 						</div>
 
 						{#if match.candidates.length > 1 && match.status !== 'skipped'}
 							<div class="mt-2 flex flex-col gap-1">
-								<p class="text-xs text-base-content/60">Multiple matches — pick one:</p>
+								<p class="text-subtle text-xs">Multiple matches — pick one:</p>
 								{#each match.candidates as candidate (candidate.id)}
 									<button
-										class="btn btn-xs"
+										class="btn btn-xs rounded-lg"
 										class:btn-primary={match.selectedId === candidate.id}
 										class:btn-ghost={match.selectedId !== candidate.id}
 										onclick={() => selectCandidate(i, candidate.id)}
@@ -161,11 +161,11 @@
 						{/if}
 
 						{#if match.status !== 'skipped' && match.candidates.length === 0}
-							<p class="mt-1 text-xs text-base-content/60">No matching Arsa transaction found.</p>
+							<p class="text-subtle mt-1 text-xs">No matching Arsa transaction found.</p>
 						{/if}
 
 						{#if match.status !== 'matched' || match.candidates.length > 1}
-							<button class="btn btn-ghost btn-xs mt-1" onclick={() => skipMatch(i)}>
+							<button class="btn btn-ghost btn-xs mt-1 rounded-lg" onclick={() => skipMatch(i)}>
 								{match.status === 'skipped' ? 'Skipped' : 'Skip'}
 							</button>
 						{/if}
@@ -174,9 +174,9 @@
 			</div>
 
 			<div class="modal-action">
-				<button class="btn btn-ghost" onclick={() => (step = 'upload')}>Back</button>
+				<button class="btn btn-ghost rounded-xl" onclick={() => (step = 'upload')}>Back</button>
 				<button
-					class="btn btn-primary"
+					class="btn btn-primary rounded-xl"
 					onclick={applyReconciliation}
 					disabled={confirmedIds.length === 0 || submitting}
 				>
@@ -189,5 +189,5 @@
 			</div>
 		{/if}
 	</div>
-	<button class="modal-backdrop" aria-label="Close" onclick={onClose}></button>
+	<button class="modal-backdrop bg-black/30" aria-label="Close" onclick={onClose}></button>
 </div>

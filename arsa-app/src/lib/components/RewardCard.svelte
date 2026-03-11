@@ -10,22 +10,20 @@
 	let affordable = $derived(myPoints >= reward.point_cost);
 </script>
 
-<div class="card bg-base-100 shadow-sm">
-	<div class="card-body p-4">
-		<h3 class="card-title text-sm">{reward.name}</h3>
-		{#if reward.description}
-			<p class="text-xs text-base-content/60">{reward.description}</p>
+<div class="shadow-soft rounded-2xl bg-base-100 p-4 press-scale">
+	<h3 class="text-sm font-bold">{reward.name}</h3>
+	{#if reward.description}
+		<p class="text-subtle mt-1 text-xs">{reward.description}</p>
+	{/if}
+	<div class="mt-3 flex items-center justify-between">
+		<span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">{reward.point_cost} pts</span>
+		{#if canRedeem}
+			<form method="POST" action="?/redeem">
+				<input type="hidden" name="reward_id" value={reward.id} />
+				<button class="btn btn-primary btn-xs rounded-lg" disabled={!affordable}>
+					{affordable ? 'Redeem' : `Need ${reward.point_cost - myPoints} more`}
+				</button>
+			</form>
 		{/if}
-		<div class="card-actions mt-2 items-center justify-between">
-			<span class="badge badge-secondary">{reward.point_cost} pts</span>
-			{#if canRedeem}
-				<form method="POST" action="?/redeem">
-					<input type="hidden" name="reward_id" value={reward.id} />
-					<button class="btn btn-primary btn-xs" disabled={!affordable}>
-						{affordable ? 'Redeem' : `Need ${reward.point_cost - myPoints} more`}
-					</button>
-				</form>
-			{/if}
-		</div>
 	</div>
 </div>

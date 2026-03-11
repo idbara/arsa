@@ -85,34 +85,34 @@
 </script>
 
 {#if !onlineStatus.isOnline}
-	<div class="alert alert-warning rounded-none py-2 text-sm">
-		<span>You're offline. Changes will sync when reconnected.</span>
-		{#if pendingCount > 0}
-			<span class="badge badge-sm">{pendingCount} pending</span>
-		{/if}
+	<div class="animate-slide-down border-b border-warning/20 bg-warning/10 px-4 py-2.5 text-sm text-warning">
+		<div class="flex items-center justify-between">
+			<span>You're offline. Changes will sync when reconnected.</span>
+			{#if pendingCount > 0}
+				<span class="rounded-full bg-warning/20 px-2 py-0.5 text-xs font-medium">{pendingCount} pending</span>
+			{/if}
+		</div>
 	</div>
 {/if}
 
 {#if toastMessage}
-	<div class="toast toast-top toast-end z-50">
-		<div class="alert alert-success py-2 text-sm">
+	<div class="fixed right-4 top-4 z-50 animate-fade-in">
+		<div class="shadow-elevated rounded-xl bg-base-100 px-4 py-3 text-sm">
 			<span>{toastMessage}</span>
 		</div>
 	</div>
 {/if}
 
 {#if showAppShell}
-	<div class="flex min-h-screen flex-col">
-		<header class="navbar bg-base-200">
-			<div class="flex-1">
-				<span class="text-xl font-bold">Arsa</span>
-			</div>
-			<div class="flex-none">
+	<div class="flex min-h-screen flex-col bg-base-100">
+		<header class="sticky top-0 z-40 border-b border-base-200 bg-base-100 px-4">
+			<div class="flex h-14 items-center justify-between">
+				<span class="text-xl font-bold text-primary">Arsa</span>
 				<ThemeToggle />
 			</div>
 		</header>
 
-		<main class="flex-1 px-4 pb-20 pt-6">
+		<main class="flex-1 px-4 pb-24 pt-4">
 			{@render children()}
 		</main>
 
@@ -133,12 +133,12 @@
 {/if}
 
 {#if showPushPrompt}
-	<div class="toast toast-bottom toast-center z-50">
-		<div class="alert shadow-lg">
-			<span>Enable notifications for budget alerts and rewards?</span>
+	<div class="fixed inset-x-4 bottom-24 z-50 flex justify-center">
+		<div class="shadow-elevated animate-slide-up w-full max-w-sm rounded-2xl bg-base-100 p-4">
+			<p class="mb-3 text-sm font-medium">Enable notifications for budget alerts and rewards?</p>
 			<div class="flex gap-2">
-				<button class="btn btn-sm btn-ghost" onclick={handlePushDismiss}>No thanks</button>
-				<button class="btn btn-sm btn-primary" onclick={handlePushAccept}>Enable</button>
+				<button class="btn btn-ghost btn-sm flex-1 rounded-xl" onclick={handlePushDismiss}>No thanks</button>
+				<button class="btn btn-primary btn-sm flex-1 rounded-xl" onclick={handlePushAccept}>Enable</button>
 			</div>
 		</div>
 	</div>
