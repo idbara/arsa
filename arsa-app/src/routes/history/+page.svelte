@@ -13,6 +13,17 @@
 	let manualSelected = new SvelteSet<string>();
 	let applyingManual = $state(false);
 
+	const categoryColors = [
+		'#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6',
+		'#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'
+	];
+
+	function getCategoryColor(name: string): string {
+		let hash = 0;
+		for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+		return categoryColors[Math.abs(hash) % categoryColors.length];
+	}
+
 	function formatAmount(amount: number, type: string): string {
 		const formatted = `Rp ${Math.abs(amount).toLocaleString('id-ID')}`;
 		if (type === 'in') return `+${formatted}`;
@@ -46,11 +57,10 @@
 </script>
 
 <div class="mb-6 flex items-center justify-between">
-	<h1 class="text-2xl font-bold">History</h1>
+	<h1 class="heading-xl">History</h1>
 	<div class="flex gap-2">
 		<button
-			class="btn btn-ghost btn-sm"
-			class:btn-active={manualMode}
+			class="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors {manualMode ? 'bg-primary/10 text-primary' : 'text-base-content/50'}"
 			onclick={() => {
 				manualMode = !manualMode;
 				manualSelected.clear();
@@ -58,58 +68,60 @@
 		>
 			Manual
 		</button>
-		<button class="btn btn-secondary btn-sm" onclick={() => (showReconcile = true)}
-			>Reconcile</button
+		<button
+			class="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary"
+			onclick={() => (showReconcile = true)}
 		>
+			Reconcile
+		</button>
 	</div>
 </div>
 
 {#if data.groups.length === 0}
-	<p class="py-10 text-center text-base-content/60">No transactions yet.</p>
+	<p class="text-subtle py-10 text-center text-sm">No transactions yet.</p>
 {:else}
 	{#each data.groups as group (group.date)}
-		<h3 class="mb-2 mt-4 text-sm font-semibold text-base-content/60">{group.label}</h3>
-		<div class="flex flex-col gap-1">
+		<h3 class="text-subtle mb-2 mt-6 text-xs font-semibold uppercase tracking-wider">{group.label}</h3>
+		<div class="divide-y divide-base-200">
 			{#each group.transactions as tx (tx.id)}
-				<div class="flex items-center justify-between border-b border-base-200 py-3">
-					<div class="flex items-center gap-2">
-						{#if manualMode && !tx.is_reconciled}
-							<input
-								type="checkbox"
-								class="checkbox checkbox-sm"
-								checked={manualSelected.has(tx.id)}
-								onchange={() => toggleManualSelect(tx.id)}
-							/>
-						{/if}
-						<div>
-							<div class="flex items-center gap-1">
-								<p class="text-sm font-medium">
-									{tx.is_private && !tx.merchant
-										? 'Private'
-										: tx.merchant ||
-											(tx.categories as unknown as { name: string })?.name ||
-											'Uncategorized'}
-								</p>
-								{#if tx.is_reconciled}
-									<span class="badge badge-success badge-xs">✓</span>
-								{/if}
-							</div>
-							<p class="text-xs text-base-content/60">
-								{(tx.categories as unknown as { name: string })?.name ?? ''}
-								· {(tx.accounts as unknown as { name: string })?.name}
-							</p>
+				{@const catName = (tx.categories as unknown as { name: string })?.name ?? 'Uncategorized'}
+				{@const displayName = tx.is_private && !tx.merchant ? 'Private' : tx.merchant || catName}
+				<div class="flex items-center gap-3 py-3">
+					{#if manualMode && !tx.is_reconciled}
+						<input
+							type="checkbox"
+							class="checkbox checkbox-sm"
+							checked={manualSelected.has(tx.id)}
+							onchange={() => toggleManualSelect(tx.id)}
+						/>
+					{/if}
+					<div
+						class="category-icon"
+						style="background-color: {getCategoryColor(catName)}"
+					>
+						{catName.charAt(0).toUpperCase()}
+					</div>
+					<div class="min-w-0 flex-1">
+						<div class="flex items-center gap-1.5">
+							<p class="truncate text-sm font-medium">{displayName}</p>
+							{#if tx.is_reconciled}
+								<span class="size-1.5 rounded-full bg-success"></span>
+							{/if}
 						</div>
+						<p class="text-subtle text-xs">
+							{catName} · {(tx.accounts as unknown as { name: string })?.name}
+						</p>
 					</div>
 					<div class="flex items-center gap-2">
 						{#if tx.receipt_url}
 							<button
-								class="btn btn-ghost btn-square btn-xs"
+								class="rounded-lg bg-base-200/50 p-1.5"
 								onclick={() => (viewingReceipt = tx.receipt_url)}
 								title="View receipt"
 							>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
-									class="size-4"
+									class="size-4 text-base-content/40"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -123,7 +135,7 @@
 								</svg>
 							</button>
 						{/if}
-						<span class="font-mono text-sm font-bold {amountColor(tx.type)}">
+						<span class="font-mono text-sm font-semibold {amountColor(tx.type)}">
 							{formatAmount(Number(tx.amount), tx.type)}
 						</span>
 					</div>
@@ -134,7 +146,7 @@
 
 	{#if data.hasMore}
 		<div class="mt-6 text-center">
-			<a href={resolve(`/history?page=${data.nextPage}`)} class="btn btn-ghost btn-sm">Load more</a>
+			<a href="{resolve('/history')}?page={data.nextPage}" class="btn btn-ghost btn-sm rounded-lg">Load more</a>
 		</div>
 	{/if}
 {/if}
@@ -142,7 +154,7 @@
 {#if manualMode && manualSelected.size > 0}
 	<div class="fixed bottom-20 left-0 right-0 flex justify-center">
 		<button
-			class="btn btn-primary btn-sm shadow-lg"
+			class="shadow-elevated animate-slide-up btn btn-primary rounded-full px-6 py-2.5"
 			disabled={applyingManual}
 			onclick={applyManualReconcile}
 		>

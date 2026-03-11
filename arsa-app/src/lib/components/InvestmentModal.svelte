@@ -27,7 +27,10 @@
 		onClose: () => void;
 	} = $props();
 
-	let assetCode = $state(propAssetCode);
+	let assetCode = $state('');
+	$effect(() => {
+		assetCode = propAssetCode;
+	});
 	let assetType = $state('stock');
 	let customTicker = $state('');
 	let qty = $state('');
@@ -105,8 +108,8 @@
 </script>
 
 <div class="modal modal-open modal-bottom">
-	<div class="modal-box">
-		<h3 class="mb-4 text-lg font-bold">
+	<div class="shadow-elevated animate-slide-up modal-box rounded-t-3xl">
+		<h3 class="heading-lg mb-4">
 			{action === 'buy' ? 'Buy Asset' : `Sell ${propAssetCode}`}
 		</h3>
 
@@ -115,28 +118,26 @@
 				<div class="form-control">
 					<label class="label cursor-pointer justify-start gap-2">
 						<input type="checkbox" class="checkbox checkbox-sm" bind:checked={isCustom} />
-						<span class="label-text">Enter custom ticker</span>
+						<span class="text-sm">Enter custom ticker</span>
 					</label>
 
 					{#if isCustom}
 						<input
 							type="text"
-							class="input input-bordered w-full"
+							class="input input-bordered w-full rounded-xl"
 							placeholder="Ticker (e.g. UNVR)"
 							bind:value={customTicker}
 						/>
-						<select class="select select-bordered mt-2 w-full" bind:value={assetType}>
+						<select class="select select-bordered mt-2 w-full rounded-xl" bind:value={assetType}>
 							<option value="stock">Stock</option>
 							<option value="gold">Gold</option>
 						</select>
 					{:else}
-						<select class="select select-bordered w-full" bind:value={assetCode}>
+						<select class="select select-bordered w-full rounded-xl" bind:value={assetCode}>
 							<option value="">Select asset...</option>
 							{#each marketRates as rate (rate.asset_code)}
 								<option value={rate.asset_code}>
-									{rate.asset_code} ({rate.asset_type}) — Rp {rate.buy_price.toLocaleString(
-										'id-ID'
-									)}
+									{rate.asset_code} ({rate.asset_type}) — Rp {rate.buy_price.toLocaleString('id-ID')}
 								</option>
 							{/each}
 						</select>
@@ -150,7 +151,7 @@
 					type="number"
 					inputmode="decimal"
 					placeholder="Quantity"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					bind:value={qty}
 					step="any"
 					min="0"
@@ -163,7 +164,7 @@
 					type="number"
 					inputmode="decimal"
 					placeholder="Price per unit"
-					class="input input-bordered w-full"
+					class="input input-bordered w-full rounded-xl"
 					bind:value={price}
 					step="any"
 					min="0"
@@ -175,8 +176,8 @@
 			{/if}
 
 			<div class="modal-action">
-				<button type="button" class="btn btn-ghost" onclick={onClose}>Cancel</button>
-				<button class="btn btn-primary" onclick={handleSubmit} disabled={submitting}>
+				<button type="button" class="btn btn-ghost rounded-xl" onclick={onClose}>Cancel</button>
+				<button class="btn btn-primary rounded-xl" onclick={handleSubmit} disabled={submitting}>
 					{#if submitting}
 						<span class="loading loading-spinner loading-sm"></span>
 					{:else}
@@ -186,5 +187,5 @@
 			</div>
 		</div>
 	</div>
-	<button class="modal-backdrop" aria-label="Close" onclick={onClose}></button>
+	<button class="modal-backdrop bg-black/30" aria-label="Close" onclick={onClose}></button>
 </div>

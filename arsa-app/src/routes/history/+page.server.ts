@@ -37,7 +37,7 @@ function getDateLabel(dateStr: string): string {
 
 export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession }, url }) => {
 	const { user } = await safeGetSession();
-	if (!user) return { groups: [], hasMore: false };
+	if (!user) return { groups: [], hasMore: false, nextPage: 0, reconCandidates: [] as never[] };
 
 	const { data: profile } = await supabase
 		.from('users')
@@ -45,7 +45,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 		.eq('id', user.id)
 		.single();
 
-	if (!profile?.family_id) return { groups: [], hasMore: false };
+	if (!profile?.family_id) return { groups: [], hasMore: false, nextPage: 0, reconCandidates: [] as never[] };
 
 	const page = parseInt(url.searchParams.get('page') ?? '0');
 	const limit = 50;
@@ -71,7 +71,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 	const groupMap = new Map<string, Transaction[]>();
 	for (const tx of sanitized) {
 		const existing = groupMap.get(tx.date) ?? [];
-		existing.push(tx as Transaction);
+		existing.push(tx as unknown as Transaction);
 		groupMap.set(tx.date, existing);
 	}
 
@@ -91,5 +91,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 		.eq('is_reconciled', false)
 		.order('date', { ascending: false });
 
-	return { groups, hasMore, nextPage: page + 1, reconCandidates: reconCandidates ?? [] };
+	const typedReconCandidates: { id: string; amount: number; type: string; date: string; merchant: string | null; is_reconciled: boolean; categories: { name: string } | null; accounts: { name: string } | null }[] = (reconCandidates ?? []) as any;
+
+	return { groups, hasMore, nextPage: page + 1, reconCandidates: typedReconCandidates };
 };

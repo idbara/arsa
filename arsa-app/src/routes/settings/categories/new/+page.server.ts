@@ -21,7 +21,7 @@ export const actions: Actions = {
 			.single();
 
 		if (profile?.role !== 'admin') {
-			return fail(403, { error: 'Only admins can create categories.' });
+			return fail(403, { error: 'Only admins can create categories.', name: '', monthlyLimit: '', isChildRelated: false });
 		}
 
 		const formData = await request.formData();
