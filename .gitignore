@@ -48,3 +48,7 @@ pkg/
 # Logs
 *.log
 npm-debug.log*
+
+# Arsa v2 migration directory
+arsa-v2/
+
